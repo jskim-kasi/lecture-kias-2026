@@ -1,6 +1,6 @@
-# Matrix Multiplication Explanations (CPU & GPU)
+# Matrix Multiplication & Vector Addition Explanations (CPU & GPU)
 
-This document provides a detailed breakdown of the CPU-based [matrix_mul_num.py](file:///home/jskim/CUDA-Python/matrix_mul_num.py), the GPU-based [matrix_mul_cupy.py](file:///home/jskim/CUDA-Python/matrix_mul_cupy.py), the GPU-based [matrix_mul_nvmath.py](file:///home/jskim/CUDA-Python/matrix_mul_nvmath.py), the benchmark/plotting scripts [matrix_mul_cupy_roofline.py](file:///home/jskim/CUDA-Python/matrix_mul_cupy_roofline.py), [matrix_mul_nvmath_roofline.py](file:///home/jskim/CUDA-Python/matrix_mul_nvmath_roofline.py), and [matrix_mul_numba_roofline.py](file:///home/jskim/CUDA-Python/matrix_mul_numba_roofline.py), the unified benchmarking and comparison plotting script [plot_comparison_roofline.py](file:///home/jskim/CUDA-Python/plot_comparison_roofline.py), the forward epilog fusion script [matrix_mul_nvmath_fusion.py](file:///home/jskim/CUDA-Python/matrix_mul_nvmath_fusion.py), the Numba CUDA vector addition script [vector_add_numba.py](file:///home/jskim/CUDA-Python/vector_add_numba.py), and the Numba CUDA matrix multiplication script [matrix_mul_numba.py](file:///home/jskim/CUDA-Python/matrix_mul_numba.py) implementations.
+This document provides a detailed breakdown of the CPU-based [matrix_mul_num.py](file:///home/jskim/git/lecture-kias-2026/codes/matrix_mul/matrix_mul_num.py), the GPU-based [matrix_mul_cupy.py](file:///home/jskim/git/lecture-kias-2026/codes/matrix_mul/matrix_mul_cupy.py), the GPU-based [matrix_mul_nvmath.py](file:///home/jskim/git/lecture-kias-2026/codes/matrix_mul/matrix_mul_nvmath.py), the benchmark/plotting scripts [matrix_mul_cupy_roofline.py](file:///home/jskim/git/lecture-kias-2026/codes/matrix_mul/matrix_mul_cupy_roofline.py), [matrix_mul_nvmath_roofline.py](file:///home/jskim/git/lecture-kias-2026/codes/matrix_mul/matrix_mul_nvmath_roofline.py), and [matrix_mul_numba_roofline.py](file:///home/jskim/git/lecture-kias-2026/codes/matrix_mul/matrix_mul_numba_roofline.py), the unified benchmarking and comparison plotting script [plot_comparison_roofline.py](file:///home/jskim/git/lecture-kias-2026/codes/matrix_mul/plot_comparison_roofline.py), the forward epilog fusion script [matrix_mul_nvmath_fusion.py](file:///home/jskim/git/lecture-kias-2026/codes/matrix_mul/matrix_mul_nvmath_fusion.py), the Numba CUDA vector addition script [vector_add_numba.py](file:///home/jskim/git/lecture-kias-2026/codes/vector_add/vector_add_numba.py), the Numba CUDA matrix multiplication script [matrix_mul_numba.py](file:///home/jskim/git/lecture-kias-2026/codes/matrix_mul/matrix_mul_numba.py), the cuTile vector addition script [vector_add_cutile.py](file:///home/jskim/git/lecture-kias-2026/codes/vector_add/vector_add_cutile.py), the cuTile matrix multiplication script [matrix_mul_cutile.py](file:///home/jskim/git/lecture-kias-2026/codes/matrix_mul/matrix_mul_cutile.py), and the cuTile roofline profiling script [matrix_mul_cutile_roofline.py](file:///home/jskim/git/lecture-kias-2026/codes/matrix_mul/matrix_mul_cutile_roofline.py) implementations.
 
 ---
 
@@ -42,7 +42,7 @@ Runs on the device GPU (Tesla V100) using **CuPy**'s `cuBLAS` library.
 
 ## 3. GPU Version (nvmath-python Stateful): `matrix_mul_nvmath.py`
 
-Runs on the GPU using NVIDIA's **nvmath-python** library, utilizing its stateful `Matmul` class context to separate planning and compilation from actual execution.
+Runs on the GPU (Tesla V100) using NVIDIA's **nvmath-python** library, utilizing its stateful `Matmul` class context to separate planning and compilation from actual execution.
 
 ### Key Logic
 1. **Stateful Context**:
@@ -91,7 +91,7 @@ $$\text{GFLOPs} = \frac{\text{Total FLOPs}}{\text{Time (seconds)} \times 10^9}$$
 
 ---
 
-## 5. The Roofline Model
+## 5. The Roofline Model (Tesla V100 SXM2)
 
 The Roofline Model visualizes the hardware constraints of a computer system:
 - **Memory Bandwidth limit** (slope on the left): Bound by how fast data can be fetched from HBM2 memory (900 GB/s for Tesla V100).
@@ -142,7 +142,7 @@ In a naive implementation, each step launches a separate GPU kernel. This requir
 `nvmath-python` provides epilog configurations that fuse these operations into a single GPU kernel run via `cuBLASLt`:
 - **`MatmulEpilog.RELU_BIAS`**: Performs GEMM, adds bias, and applies ReLU within the registers/SRAM of the GPU cores before writing the final result back to HBM.
 
-### C. Benchmark Analysis
+### C. Benchmark Analysis (Tesla V100)
 Using the configured dimensions of $100 \times 784$ weights and a batch size of $256$:
 - **Naive Execution**: `2.576 ms`
 - **Fused Execution**: `0.082 ms` ($\approx \mathbf{31.5\times}$ **speedup**)
@@ -153,7 +153,7 @@ Fusing these steps yields a massive $31\times$ performance increase on the forwa
 
 ## 8. Numba CUDA Version: `vector_add_numba.py`
 
-This script demonstrates performing element-wise vector addition ($Z_i = X_i + Y_i$) on the GPU using **Numba**'s `@cuda.jit` compiler.
+This script demonstrates performing element-wise vector addition ($Z_i = X_i + Y_i$) on the GPU (Tesla V100) using **Numba**'s `@cuda.jit` compiler.
 
 ### Key Logic
 1. **CUDA Kernel**:
@@ -185,7 +185,7 @@ This script demonstrates performing element-wise vector addition ($Z_i = X_i + Y
 
 ## 9. Numba CUDA Version: `matrix_mul_numba.py`
 
-This script demonstrates performing matrix multiplication ($C = A \times B$) of size $1024 \times 1024$ on the GPU using **Numba**'s `@cuda.jit` compiler with a 2D grid/block layout.
+This script demonstrates performing matrix multiplication ($C = A \times B$) of size $1024 \times 1024$ on the GPU (Tesla V100) using **Numba**'s `@cuda.jit` compiler with a 2D grid/block layout.
 
 ### Key Logic
 1. **2D CUDA Kernel**:
@@ -219,7 +219,7 @@ This script demonstrates performing matrix multiplication ($C = A \times B$) of 
 
 ## 10. Numba CUDA Roofline Benchmark: `matrix_mul_numba_roofline.py`
 
-This script profiles Numba's GPU matrix multiplication performance across sizes ranging from $32 \times 32$ to $16384 \times 16384$.
+This script profiles Numba's GPU matrix multiplication performance across sizes ranging from $32 \times 32$ to $16384 \times 16384$ on a Tesla V100 GPU.
 
 ### Shared-Memory Tiling Optimization
 To scale efficiently to large matrix sizes without causing driver timeouts or massive latencies, `matrix_mul_numba_roofline.py` uses a **blocked shared-memory kernel**:
@@ -234,4 +234,109 @@ To scale efficiently to large matrix sizes without causing driver timeouts or ma
   - As matrix sizes grow, performance approaches the shared-memory tiling peak compute limit, leveling off at **~2.4 TFLOPS** (2,400 GFLOPS) on the Tesla V100 GPU.
   - This is compared directly in `roofline_comparison.png` against CuPy and stateful `nvmath-python` (which both use the highly-tuned, assembly-optimized `cuBLAS` library and reach **14 TFLOPS**).
 
+---
+
+## 11. cuTile Vector Addition Version: `vector_add_cutile.py`
+
+This script demonstrates performing element-wise vector addition ($Z_i = X_i + Y_i$) on the GPU using NVIDIA's new **cuTile** Python DSL (`cuda.tile`) and block-level tile loading/storing.
+
+### Hardware Context
+Unlike the other benchmarks and Numba CUDA codes which were executed on a **Tesla V100 SXM2** GPU, the cuTile implementation was tested and run on an **NVIDIA H100** GPU using a local Python 3.13 environment supporting the newer `cuda.tile` namespace.
+
+### Key Logic
+1. **cuTile Kernel**:
+   ```python
+   @ct.kernel
+   def vector_add_kernel(x, y, out):
+       # Get the block ID (equivalent to blockIdx.x)
+       block_id = ct.bid(0)
+       
+       # Load data tiles from global memory
+       x_tile = ct.load(x, index=(block_id,), shape=(TILE_SIZE,))
+       y_tile = ct.load(y, index=(block_id,), shape=(TILE_SIZE,))
+       
+       # Perform elementwise addition on the tiles
+       result_tile = x_tile + y_tile
+       
+       # Store the result tile back to global memory
+       ct.store(out, index=(block_id,), tile=result_tile)
+   ```
+   - `@ct.kernel` compiles the cuTile entry point.
+   - `ct.bid(0)` gets the 1D block index.
+   - **Block-level Tiles**: Instead of threads fetching individual elements element-by-element manually, cuTile operates directly on blocks of size `TILE_SIZE` (here `256`) using high-level vector/tile representations. `ct.load` and `ct.store` cooperatively load and store the whole tile from/to global memory.
+2. **Grid Layout**:
+   - `grid = (ct.cdiv(n, TILE_SIZE), 1, 1)` uses cuTile's ceiling division helper `ct.cdiv` to compute the number of blocks needed to process a vector of size `n` with tile size `TILE_SIZE`.
+3. **Warmup & Launch**:
+    - Launching the kernel uses `ct.launch` passing the stream, grid, kernel, and argument tuple.
+    - The first launch is a warmup pass to ensure compilation completes before time measurement.
+
+---
+
+## 12. cuTile Matrix Multiplication Version: `matrix_mul_cutile.py`
+
+This script demonstrates performing 2D matrix multiplication ($C = A \times B$) of size $1024 \times 1024$ on the GPU using NVIDIA's new **cuTile** Python DSL (`cuda.tile`).
+
+### Hardware Context
+Like the cuTile vector addition script, this was tested and run on an **NVIDIA H100 PCIe (80GB)** GPU, utilizing block-level tile loads, stores, and Tensor Core mma calculations.
+
+### Key Logic
+1. **2D Block Indices**:
+   ```python
+   bidx = ct.bid(0)
+   bidy = ct.bid(1)
+   ```
+   Unlike standard thread-level indexing (`threadIdx`, `blockIdx`), cuTile works at block-tile granularity. `ct.bid(0)` and `ct.bid(1)` retrieve the 2D coordinates of the block.
+2. **Accumulator Initialization**:
+   ```python
+   accumulator = ct.zeros(shape=(TILE_M, TILE_N), dtype=ct.float32)
+   ```
+   Initializes a tile accumulator of shape `(TILE_M, TILE_N)` (here `16x16`) with all zeros in register/SRAM.
+3. **Tile Loop & MMA**:
+   ```python
+   for k in range(steps):
+       a_tile = ct.load(A, index=(bidx, k), shape=(TILE_M, TILE_K))
+       b_tile = ct.load(B, index=(k, bidy), shape=(TILE_K, TILE_N))
+       accumulator = ct.mma(a_tile, b_tile, accumulator)
+   ```
+   - Loops step-by-step through the shared dimension $K$.
+   - **`ct.load`**: Loads a 2D tile from memory. For $A$, the tile at block-row `bidx` and tile-column `k` of shape `(16, 16)` is loaded. For $B$, the tile at tile-row `k` and block-column `bidy` is loaded.
+   - **`ct.mma`**: Performs the block-level matrix multiply-accumulate utilizing hardware Tensor Cores directly.
+4. **`ct.store`**:
+   ```python
+   ct.store(C, index=(bidx, bidy), tile=accumulator)
+   ```
+   Writes the final accumulated result tile back to matrix $C$ at block coordinates `(bidx, bidy)` in global memory.
+
+---
+
+## 13. cuTile H100 Roofline Analysis: `matrix_mul_cutile_roofline.py`
+
+This script profiles the performance of the cuTile matrix multiplication across sizes ranging from $32 \times 32$ to $16384 \times 16384$ and plots the measured performance against the theoretical bounds of the **NVIDIA H100 PCIe** GPU.
+
+### A. Theoretical Roofline Bounds (H100 PCIe)
+- **Peak FP32 Performance**: 51 TFLOPS (51,000 GFLOPS)
+- **Peak Memory Bandwidth**: 2.0 TB/s (2,000 GB/s)
+- **Ridge Point**:
+  $$I_{\text{ridge}} = \frac{\text{Peak Compute}}{\text{Memory Bandwidth}} = \frac{51000 \text{ GFLOPS}}{2000 \text{ GB/s}} \approx 25.50 \text{ FLOP/Byte}$$
+  If the Arithmetic Intensity (AI) is $\ge 25.50$ FLOP/Byte, execution is theoretically compute-bound. Since our sizes $N \ge 256$ have $\text{AI} \ge 42.67$ FLOP/Byte, the benchmarks fall strictly within the compute-bound region.
+
+### B. Benchmark Results & Observations
+The measured performance levels off at **~1015 GFLOPS** (1.015 TFLOPS) starting around size $4096 \times 4096$:
+
+| Matrix Size | Arithmetic Intensity | Execution Time (s) | Throughput (GFLOPS) |
+| :--- | :--- | :--- | :--- |
+| **32x32** | 5.33 FLOP/B | 0.000025 s | 2.66 GFLOPS |
+| **128x128** | 21.33 FLOP/B | 0.000019 s | 222.72 GFLOPS |
+| **512x512** | 85.33 FLOP/B | 0.000315 s | 852.97 GFLOPS |
+| **1024x1024** | 170.67 FLOP/B | 0.002356 s | 911.42 GFLOPS |
+| **4096x4096** | 682.67 FLOP/B | 0.136846 s | 1,004.33 GFLOPS |
+| **16384x16384** | 2730.67 FLOP/B | 8.667315 s | 1,014.86 GFLOPS |
+
+### C. Performance Analysis: Naive cuTile vs. Peak Compute
+While **1 TFLOPS** represents extremely fast execution (completing a $1024 \times 1024$ matmul in just $2.3$ milliseconds), it represents approximately $1.99\%$ of the H100 GPU's peak compute capacity ($51$ TFLOPS). This plateau is due to the simple nature of our naive kernel:
+1. **No Shared Memory Pipelining**: In our loop, global memory tiles are loaded directly into the execution pipelines (`ct.load`). While the memory transfers happen, the Tensor Core computation pipeline stalls waiting for data. To bypass this, high-performance kernels use **double buffering** (or multi-stage pipelining) to prefetch the next tile's data into shared memory using asynchronous TMA (Tensor Memory Accelerator) instructions while the current tile is being multiplied.
+2. **No Warp Specialization**: High-performance Hopper kernels dedicate separate sets of warps inside the SM for memory loading vs. math execution, running them concurrently.
+3. **No L2 Cache Swizzling**: Thread blocks are dispatched to the GPU in linear raster order, which does not maximize cache reuse. Swizzling coordinates improves L2 cache hit rates significantly.
+
+*Note: cuTile provides lower-level parameters to implement pipelining, swizzling, and warp specialization. Our example provides a clean, easy-to-read reference demonstrating correctness and baseline Tensor Core execution.*
 
