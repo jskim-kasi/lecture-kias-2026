@@ -4,16 +4,16 @@ This project contains Python scripts to perform and profile matrix multiplicatio
 
 ## File Structure
 
-- [matrix_mul_num.py](file:///home/jskim/CUDA-Python/matrix_mul_num.py): CPU script generating two random `1024x1024` float32 matrices and multiplying them using NumPy.
-- [matrix_mul_cupy.py](file:///home/jskim/CUDA-Python/matrix_mul_cupy.py): GPU script generating two random `1024x1024` float32 matrices and multiplying them on the GPU using CuPy.
-- [matrix_mul_nvmath.py](file:///home/jskim/CUDA-Python/matrix_mul_nvmath.py): GPU script using NVIDIA's [nvmath-python](https://docs.nvidia.com/cuda/nvmath-python/latest/index.html) library wrapper with the stateful `Matmul` class context to eliminate planning overhead during execution.
-- [matrix_mul_cupy_roofline.py](file:///home/jskim/CUDA-Python/matrix_mul_cupy_roofline.py): Benchmarking script that loops matrix sizes from 32 to 16384 (powers of 2) for CuPy, saves them to [benchmark_cupy_results.csv](file:///home/jskim/CUDA-Python/benchmark_cupy_results.csv), and generates the Roofline Model plot: [roofline_cupy.png](file:///home/jskim/CUDA-Python/roofline_cupy.png).
-- [matrix_mul_nvmath_roofline.py](file:///home/jskim/CUDA-Python/matrix_mul_nvmath_roofline.py): Benchmarking script that loops matrix sizes from 32 to 16384 (powers of 2) using stateful nvmath-python, saves measurements to [benchmark_nvmath_results.csv](file:///home/jskim/CUDA-Python/benchmark_nvmath_results.csv), and generates the Roofline Model plot: [roofline_nvmath.png](file:///home/jskim/CUDA-Python/roofline_nvmath.png).
-- [matrix_mul_numba_roofline.py](file:///home/jskim/CUDA-Python/matrix_mul_numba_roofline.py): Benchmarking script that loops matrix sizes from 32 to 16384 (powers of 2) using Numba shared-memory tiling, saves measurements to [benchmark_numba_results.csv](file:///home/jskim/CUDA-Python/benchmark_numba_results.csv), and generates the Roofline Model plot: [roofline_numba.png](file:///home/jskim/CUDA-Python/roofline_numba.png).
-- [plot_comparison_roofline.py](file:///home/jskim/CUDA-Python/plot_comparison_roofline.py): Unified benchmarking and plotting script that runs matrix multiplication benchmarks across sizes 32 to 16384 for all three backends (CuPy, nvmath-python, and Numba CUDA), exports three separate CSV results, and generates the combined comparison plot [roofline_comparison.png](file:///home/jskim/CUDA-Python/roofline_comparison.png).
-- [matrix_mul_nvmath_fusion.py](file:///home/jskim/CUDA-Python/matrix_mul_nvmath_fusion.py): Demonstrates forward-only epilog fusion (GEMM + Bias + ReLU) for weight matrix `100x784` and batch size `256` comparing inlined naive execution vs. `RELU_BIAS` epilog.
-- [vector_add_numba.py](file:///home/jskim/CUDA-Python/vector_add_numba.py): GPU script demonstrating vector addition using Numba's `@cuda.jit` compiler and memory management.
-- [matrix_mul_numba.py](file:///home/jskim/CUDA-Python/matrix_mul_numba.py): GPU script demonstrating $1024 \times 1024$ matrix multiplication using Numba's `@cuda.jit` compiler and 2D execution configuration.
+- [matrix_mul_num.py](matrix_mul_num.py): CPU script generating two random `1024x1024` float32 matrices and multiplying them using NumPy.
+- [matrix_mul_cupy.py](matrix_mul_cupy.py): GPU script generating two random `1024x1024` float32 matrices and multiplying them on the GPU using CuPy.
+- [matrix_mul_nvmath.py](matrix_mul_nvmath.py): GPU script using NVIDIA's [nvmath-python](https://docs.nvidia.com/cuda/nvmath-python/latest/index.html) library wrapper with the stateful `Matmul` class context to eliminate planning overhead during execution.
+- [matrix_mul_cupy_roofline.py](matrix_mul_cupy_roofline.py): Benchmarking script that loops matrix sizes from 32 to 16384 (powers of 2) for CuPy, saves them to [benchmark_cupy_results.csv](benchmark_cupy_results.csv), and generates the Roofline Model plot: [roofline_cupy.png](roofline_cupy.png).
+- [matrix_mul_nvmath_roofline.py](matrix_mul_nvmath_roofline.py): Benchmarking script that loops matrix sizes from 32 to 16384 (powers of 2) using stateful nvmath-python, saves measurements to [benchmark_nvmath_results.csv](benchmark_nvmath_results.csv), and generates the Roofline Model plot: [roofline_nvmath.png](roofline_nvmath.png).
+- [matrix_mul_numba_roofline.py](matrix_mul_numba_roofline.py): Benchmarking script that loops matrix sizes from 32 to 16384 (powers of 2) using Numba shared-memory tiling, saves measurements to [benchmark_numba_results.csv](benchmark_numba_results.csv), and generates the Roofline Model plot: [roofline_numba.png](roofline_numba.png).
+- [plot_comparison_roofline.py](plot_comparison_roofline.py): Unified benchmarking and plotting script that runs matrix multiplication benchmarks across sizes 32 to 16384 for all three backends (CuPy, nvmath-python, and Numba CUDA), exports three separate CSV results, and generates the combined comparison plot [roofline_comparison.png](roofline_comparison.png).
+- [matrix_mul_nvmath_fusion.py](matrix_mul_nvmath_fusion.py): Demonstrates forward-only epilog fusion (GEMM + Bias + ReLU) for weight matrix `100x784` and batch size `256` comparing inlined naive execution vs. `RELU_BIAS` epilog.
+- [vector_add_numba.py](vector_add_numba.py): GPU script demonstrating vector addition using Numba's `@cuda.jit` compiler and memory management.
+- [matrix_mul_numba.py](matrix_mul_numba.py): GPU script demonstrating $1024 \times 1024$ matrix multiplication using Numba's `@cuda.jit` compiler and 2D execution configuration.
 
 ## Prerequisites
 
@@ -117,6 +117,6 @@ LD_LIBRARY_PATH="/opt/ohpc/pub/cuda/12.8.1/targets/x86_64-linux/lib/:$LD_LIBRARY
 | **8192x8192** | 1365.33 | 0.078239 | **14,053.20** | 0.078535 | **14,000.23** | 0.463398 | 2,372.72 |
 | **16384x16384** | 2730.67 | 0.627137 | **14,025.80** | 0.627438 | **14,019.07** | 3.674601 | 2,393.75 |
 
-CuPy results are exported to [benchmark_cupy_results.csv](file:///home/jskim/CUDA-Python/benchmark_cupy_results.csv) and plotted in [roofline_cupy.png](file:///home/jskim/CUDA-Python/roofline_cupy.png).
-nvmath results are exported to [benchmark_nvmath_results.csv](file:///home/jskim/CUDA-Python/benchmark_nvmath_results.csv) and plotted in [roofline_nvmath.png](file:///home/jskim/CUDA-Python/roofline_nvmath.png).
-Numba results are exported to [benchmark_numba_results.csv](file:///home/jskim/CUDA-Python/benchmark_numba_results.csv) and plotted in [roofline_numba.png](file:///home/jskim/CUDA-Python/roofline_numba.png).
+CuPy results are exported to [benchmark_cupy_results.csv](benchmark_cupy_results.csv) and plotted in [roofline_cupy.png](roofline_cupy.png).
+nvmath results are exported to [benchmark_nvmath_results.csv](benchmark_nvmath_results.csv) and plotted in [roofline_nvmath.png](roofline_nvmath.png).
+Numba results are exported to [benchmark_numba_results.csv](benchmark_numba_results.csv) and plotted in [roofline_numba.png](roofline_numba.png).
